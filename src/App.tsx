@@ -6,21 +6,33 @@ import Toko from './pages/Toko'
 import Produk from './pages/Produk'
 import Hampers from './pages/Hampers'
 import AdminLayout from './layouts/AdminLayout'
+import ProtectedRoute from './components/ProtectedRoute'
+import { getAuthToken } from './services/api'
 
 function App() {
+  const isLoggedIn = !!getAuthToken()
+
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      {/* Kalau sudah login dan buka /login, langsung ke dashboard */}
+      <Route
+        path="/login"
+        element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Login />}
+      />
 
-      <Route element={<AdminLayout />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/toko" element={<Toko />} />
-        <Route path="/produk" element={<Produk />} />
-        <Route path="/hampers" element={<Hampers />} />
+      {/* Halaman admin — harus login dulu */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AdminLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/toko" element={<Toko />} />
+          <Route path="/produk" element={<Produk />} />
+          <Route path="/hampers" element={<Hampers />} />
+        </Route>
       </Route>
 
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* Default redirect ke login */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )
 }
