@@ -59,6 +59,9 @@ function Dashboard() {
     })
   }
 
+  const getActivityItemName = (description: string) =>
+    description.match(/"([^"]+)"/)?.[1]
+
   return (
     <div>
       <div className="page-heading">
@@ -174,7 +177,6 @@ function Dashboard() {
           <div className="activity-table">
             <div className="table-head">
               <span>Modul</span>
-              <span>Aksi</span>
               <span>Keterangan</span>
               <span>Waktu</span>
               <span>Status</span>
@@ -192,8 +194,14 @@ function Dashboard() {
               stats.recentActivities.map((item, index) => (
                 <div className="activity-row" key={item.id || index}>
                   <span>{item.module || 'Sistem'}</span>
-                  <span className="activity-name">{item.action}</span>
-                  <span style={{ fontSize: '13px' }}>{item.description}</span>
+                  <span className="activity-name">
+                    {item.action}
+                    {getActivityItemName(item.description) && (
+                      <small className="activity-item-name">
+                        {getActivityItemName(item.description)}
+                      </small>
+                    )}
+                  </span>
                   <span>{formatTime(item.created_at)}</span>
                   <span>
                     <span className="status success-status">

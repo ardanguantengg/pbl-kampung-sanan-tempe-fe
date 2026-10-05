@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Gift, Plus, Pencil, Trash2, X, Search, Loader2, AlertCircle, Package } from 'lucide-react'
+import { Gift, Plus, Pencil, Trash2, X, Search, Loader2, AlertCircle } from 'lucide-react'
 import { api, getFullImageUrl } from '../services/api'
 
 export interface HamperItem {
@@ -15,20 +15,21 @@ export interface HamperItem {
 
 export interface HamperFormData {
   name: string
+  storeId: string
+  jumlahProduk: string
   price: string
   status: string
   image: string
   imageFile?: File | null
   description: string
-  selectedProducts: { product_id: number; quantity: number }[]
 }
 
 function Hampers() {
   const [hampers, setHampers] = useState<HamperItem[]>([])
   const [availableProducts, setAvailableProducts] = useState<any[]>([])
+  const [availableStores, setAvailableStores] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('Semua')
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -36,42 +37,48 @@ function Hampers() {
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  const [formData, setFormData] = useState<HamperFormData>({
+  const defaultForm: HamperFormData = {
     name: '',
+    storeId: '',
+    jumlahProduk: '',
     price: '',
     status: 'Aktif',
     image: '',
     imageFile: null,
     description: '',
-    selectedProducts: [],
-  })
+  }
+
+  const [formData, setFormData] = useState<HamperFormData>(defaultForm)
 
   useEffect(() => {
     fetchHampers()
     fetchProducts()
-  }, [statusFilter])
+    fetchStores()
+  }, [])
 
   const fetchProducts = async () => {
     try {
       const res = await api.products.getAll()
-      if (res.success) {
-        setAvailableProducts(res.data)
-      }
+      if (res.success) setAvailableProducts(res.data)
     } catch (err) {
       console.error('Failed to load products:', err)
+    }
+  }
+
+  const fetchStores = async () => {
+    try {
+      const res = await api.stores.getAll()
+      if (res.success) setAvailableStores(res.data)
+    } catch (err) {
+      console.error('Failed to load stores:', err)
     }
   }
 
   const fetchHampers = async () => {
     try {
       setLoading(true)
-      const res = await api.hampers.getAll({
-        search: searchQuery || undefined,
-        status: statusFilter !== 'Semua' ? statusFilter : undefined,
-      })
-      if (res.success) {
-        setHampers(res.data)
-      }
+      const res = await api.hampers.getAll()
+      if (res.success) setHampers(res.data)
     } catch (err) {
       console.error('Failed to load hampers:', err)
     } finally {
@@ -81,19 +88,10 @@ function Hampers() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    fetchHampers()
   }
 
   const resetForm = () => {
-    setFormData({
-      name: '',
-      price: '',
-      status: 'Aktif',
-      image: '',
-      imageFile: null,
-      description: '',
-      selectedProducts: availableProducts.length > 0 ? [{ product_id: availableProducts[0].id, quantity: 1 }] : [],
-    })
+    setFormData(defaultForm)
     setEditingId(null)
     setFormError(null)
   }
@@ -102,10 +100,10 @@ function Hampers() {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = event.target
-    const inputElement = event.target as HTMLInputElement
+    const inputEl = event.target as HTMLInputElement
 
-    if (inputElement.files && inputElement.files[0]) {
-      const file = inputElement.files[0]
+    if (inputEl.files && inputEl.files[0]) {
+      const file = inputEl.files[0]
       const fileUrl = URL.createObjectURL(file)
       setFormData((prev) => ({ ...prev, image: fileUrl, imageFile: file }))
       return
@@ -114,41 +112,32 @@ function Hampers() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleAddProductRow = () => {
-    if (availableProducts.length === 0) return
-    setFormData((prev) => ({
-      ...prev,
-      selectedProducts: [...prev.selectedProducts, { product_id: availableProducts[0].id, quantity: 1 }],
-    }))
-  }
-
-  const handleRemoveProductRow = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      selectedProducts: prev.selectedProducts.filter((_, i) => i !== index),
-    }))
-  }
-
-  const handleProductChange = (index: number, productId: number, quantity: number) => {
-    setFormData((prev) => {
-      const updated = [...prev.selectedProducts]
-      updated[index] = { product_id: productId, quantity }
-      return { ...prev, selectedProducts: updated }
-    })
-  }
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setFormError(null)
     setSubmitting(true)
 
     try {
+      // Build items array: pick products from selected store up to jumlahProduk count
+      const storeProducts = formData.storeId
+        ? availableProducts.filter((p) => String(p.store_id) === String(formData.storeId))
+        : availableProducts
+
+      const count = Math.max(1, parseInt(formData.jumlahProduk, 10) || 1)
+      const itemsToUse = storeProducts.slice(0, count)
+
+      const items = itemsToUse.length > 0
+        ? itemsToUse.map((p) => ({ product_id: p.id, quantity: 1 }))
+        : availableProducts.length > 0
+        ? [{ product_id: availableProducts[0].id, quantity: 1 }]
+        : []
+
       const data = new FormData()
       data.append('name', formData.name.trim())
       data.append('price', formData.price)
       data.append('description', formData.description.trim())
       data.append('status', formData.status)
-      data.append('items', JSON.stringify(formData.selectedProducts))
+      data.append('items', JSON.stringify(items))
 
       if (formData.imageFile) {
         data.append('image', formData.imageFile)
@@ -175,19 +164,24 @@ function Hampers() {
 
   const handleEdit = (hamper: HamperItem) => {
     setEditingId(hamper.id)
-    const currentItems = (hamper.items || []).map((i) => ({
-      product_id: i.product_id,
-      quantity: i.quantity,
-    }))
+
+    // Guess the store from first item
+    const firstItem = hamper.items && hamper.items[0]
+    const storeId = firstItem
+      ? String(
+          availableProducts.find((p) => p.id === firstItem.product_id)?.store_id || ''
+        )
+      : ''
 
     setFormData({
       name: hamper.name,
+      storeId,
+      jumlahProduk: String(hamper.items?.length || hamper.item_count || ''),
       price: String(hamper.price),
       status: hamper.status,
       image: hamper.image ? getFullImageUrl(hamper.image) || '' : '',
       imageFile: null,
       description: hamper.description || '',
-      selectedProducts: currentItems.length > 0 ? currentItems : (availableProducts.length > 0 ? [{ product_id: availableProducts[0].id, quantity: 1 }] : []),
     })
     setIsFormOpen(true)
   }
@@ -203,17 +197,18 @@ function Hampers() {
     }
   }
 
+  const filteredHampers = hampers.filter((h) =>
+    searchQuery ? h.name.toLowerCase().includes(searchQuery.toLowerCase()) : true
+  )
+
   return (
     <div>
-      {/* HEADER HALAMAN */}
+      {/* HEADER */}
       <div className="page-title-row">
         <div>
-          <h1>Paket Hampers & Oleh-Oleh</h1>
-          <p>
-            Kelola paket bundling keripik tempe khas Sanan untuk oleh-oleh dan bingkisan eksklusif.
-          </p>
+          <h1>Daftar Paket</h1>
+          <p>Kelola paket dan rekomendasi oleh-oleh dari toko di Kampung Sanan.</p>
         </div>
-
         <button
           className="primary-button"
           onClick={() => {
@@ -222,200 +217,194 @@ function Hampers() {
           }}
         >
           <Plus size={17} />
-          Tambah Hampers
+          Tambah Produk
         </button>
       </div>
 
-      {/* TOOLBAR */}
-      <form className="toolbar" onSubmit={handleSearch}>
-        <div className="search-box">
+      {/* SEARCH */}
+      <form onSubmit={handleSearch} style={{ marginBottom: '24px' }}>
+        <div className="search-box" style={{ maxWidth: '340px' }}>
           <Search size={17} />
           <input
             type="text"
-            placeholder="Cari paket hampers..."
+            placeholder="Cari paket....."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-
-        <div className="tabs" style={{ marginBottom: 0 }}>
-          <button
-            type="button"
-            className={`tab ${statusFilter === 'Semua' ? 'active' : ''}`}
-            onClick={() => setStatusFilter('Semua')}
-          >
-            Semua <span>{hampers.length}</span>
-          </button>
-          <button
-            type="button"
-            className={`tab ${statusFilter === 'Aktif' ? 'active' : ''}`}
-            onClick={() => setStatusFilter('Aktif')}
-          >
-            Aktif <span>{hampers.filter((h) => h.status === 'Aktif').length}</span>
-          </button>
-        </div>
       </form>
 
-      {/* DATA HAMPERS */}
-      <div className="data-panel">
-        <div className="data-table">
-          <div className="data-head">
-            <span>NAMA HAMPERS</span>
-            <span>ISI PRODUK</span>
-            <span>HARGA PAKET</span>
-            <span>STATUS</span>
-            <span>AKSI</span>
-          </div>
+      {/* CARD GRID */}
+      {loading ? (
+        <div style={{ padding: '48px', textAlign: 'center', color: '#9b8d84' }}>
+          <Loader2 size={28} style={{ display: 'inline', marginRight: 8 }} />
+          Memuat data paket...
+        </div>
+      ) : filteredHampers.length === 0 ? (
+        <div style={{ padding: '48px', textAlign: 'center', color: '#9b8d84' }}>
+          <Gift size={40} style={{ display: 'block', margin: '0 auto 12px', opacity: 0.3 }} />
+          Belum ada paket hampers
+        </div>
+      ) : (
+        <div className="hampers-card-grid">
+          {filteredHampers.map((hamper, index) => {
+            const storeName =
+              hamper.items && hamper.items.length > 0
+                ? hamper.items[0].store_name || hamper.description || ''
+                : hamper.description || ''
+            const productCount = hamper.items?.length ?? hamper.item_count ?? 0
 
-          {loading ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              <Loader2 className="animate-spin" size={24} style={{ display: 'inline', marginRight: 8 }} />
-              Memuat data hampers...
-            </div>
-          ) : hampers.length === 0 ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              Belum ada paket hampers
-            </div>
-          ) : (
-            hampers.map((hamper, index) => (
-              <div className="data-row" key={hamper.id || index}>
-                <div className="store-name">
-                  {hamper.image ? (
-                    <img
-                      src={getFullImageUrl(hamper.image)}
-                      alt={hamper.name}
-                      className="product-image"
-                    />
-                  ) : (
-                    <div className="product-image store-image-empty">
-                      <Gift size={20} />
-                    </div>
-                  )}
-
-                  <div>
-                    <strong>{hamper.name}</strong>
-                    <small>{hamper.description || 'Paket oleh-oleh khas Sanan'}</small>
+            return (
+              <div className="hampers-card" key={hamper.id || index}>
+                <div className="hampers-card-top">
+                  <div className="hampers-card-icon">
+                    <Gift size={20} />
                   </div>
-                </div>
-
-                <div>
-                  <span className="badge neutral">
-                    <Package size={12} style={{ marginRight: 4, display: 'inline' }} />
-                    {hamper.items?.length || hamper.item_count || 0} Macam Produk
-                  </span>
-                  {hamper.items && hamper.items.length > 0 && (
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      {hamper.items.map((it: any) => `${it.product_name} (${it.quantity}x)`).join(', ')}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <strong>Rp{Number(hamper.price).toLocaleString('id-ID')}</strong>
-                </div>
-
-                <div>
                   <span
-                    className={`status-badge ${
-                      hamper.status === 'Aktif' ? 'active-status' : 'waiting-status'
+                    className={`hampers-badge ${
+                      hamper.status === 'Aktif'
+                        ? 'hampers-badge-aktif'
+                        : hamper.status === 'Habis'
+                        ? 'hampers-badge-habis'
+                        : 'hampers-badge-nonaktif'
                     }`}
                   >
                     {hamper.status}
                   </span>
                 </div>
 
-                <div className="row-actions">
+                <div className="hampers-card-body">
+                  <h3 className="hampers-card-name">{hamper.name}</h3>
+                  {storeName && <p className="hampers-card-store">{storeName}</p>}
+                </div>
+
+                <div className="hampers-card-meta">
+                  <span className="hampers-count">{productCount} Produk</span>
+                  <span className="hampers-price">
+                    Rp{Number(hamper.price).toLocaleString('id-ID')}
+                  </span>
+                </div>
+
+                <div className="hampers-card-divider" />
+
+                <div className="hampers-card-actions">
                   <button
-                    title="Edit"
                     type="button"
+                    className="hampers-btn-edit"
                     onClick={() => handleEdit(hamper)}
                   >
-                    <Pencil size={16} />
+                    <Pencil size={13} />
+                    Edit
                   </button>
-
                   <button
-                    title="Hapus"
                     type="button"
+                    className="hampers-btn-delete"
                     onClick={() => setDeleteTargetId(hamper.id)}
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={13} />
+                    Hapus
                   </button>
                 </div>
               </div>
-            ))
-          )}
+            )
+          })}
         </div>
+      )}
 
-        <div className="pagination">
-          <span>Menampilkan {hampers.length} dari {hampers.length} Paket Hampers</span>
-        </div>
-      </div>
-
-      {/* FORM DRAWER HAMPERS */}
+      {/* ── MODAL FORM ── */}
       {isFormOpen && (
-        <div className="drawer-overlay" onClick={() => setIsFormOpen(false)}>
-          <div className="drawer-panel" onClick={(event) => event.stopPropagation()}>
-            <div className="drawer-header">
+        <div className="hf-overlay" onClick={() => setIsFormOpen(false)}>
+          <div className="hf-modal" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="hf-header">
               <div>
-                <span className="eyebrow">FORM HAMPERS</span>
-                <h2>{editingId === null ? 'Tambah Paket Hampers' : 'Edit Hampers'}</h2>
+                <span className="hf-eyebrow">FORM INPUT</span>
+                <h2 className="hf-title">
+                  {editingId === null ? 'Tambah paket baru' : 'Edit paket hampers'}
+                </h2>
               </div>
-
               <button
                 type="button"
-                className="icon-button"
+                className="hf-close"
                 onClick={() => setIsFormOpen(false)}
               >
                 <X size={16} />
               </button>
             </div>
 
+            {/* Error */}
             {formError && (
-              <div
-                style={{
-                  margin: '16px 24px 0',
-                  padding: '10px 14px',
-                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  borderRadius: '8px',
-                  color: '#ef4444',
-                  fontSize: '13px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
-              >
-                <AlertCircle size={16} />
+              <div className="hf-error">
+                <AlertCircle size={15} />
                 <span>{formError}</span>
               </div>
             )}
 
-            <form className="drawer-form" onSubmit={handleSubmit}>
-              <div className="form-grid">
-                <label className="field" style={{ gridColumn: 'span 2' }}>
-                  <span>Nama Paket Hampers *</span>
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="hf-form">
+              {/* Row 1: Nama paket | Toko */}
+              <div className="hf-grid">
+                <label className="hf-field">
+                  <span>Nama paket</span>
                   <input
                     name="name"
+                    placeholder="Keripik Tempe Original"
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="contoh: Paket Hampers Sanan Komplit"
                     required
                   />
                 </label>
 
-                <label className="field">
-                  <span>Harga Paket (Rp) *</span>
+                <label className="hf-field">
+                  <span>Toko</span>
+                  <select name="storeId" value={formData.storeId} onChange={handleChange}>
+                    <option value="">-- Pilih Toko --</option>
+                    {availableStores.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                {/* Row 2: Jumlah produk | Harga */}
+                <label className="hf-field">
+                  <span>Jumlah produk</span>
+                  <input
+                    name="jumlahProduk"
+                    type="number"
+                    min="1"
+                    placeholder="5"
+                    value={formData.jumlahProduk}
+                    onChange={handleChange}
+                  />
+                </label>
+
+                <label className="hf-field">
+                  <span>Harga</span>
                   <input
                     name="price"
                     type="number"
+                    placeholder="9000"
                     value={formData.price}
                     onChange={handleChange}
-                    placeholder="65000"
                     required
                   />
                 </label>
 
-                <label className="field">
+                {/* Row 3: Deskripsi paket (full width) */}
+                <label className="hf-field hf-full">
+                  <span>Deskripsi paket</span>
+                  <input
+                    name="description"
+                    placeholder="contoh: isi paket terdiri dari 3 produk varian unggulan"
+                    value={formData.description}
+                    onChange={handleChange}
+                  />
+                </label>
+
+                {/* Row 4: Status | Gambar Produk */}
+                <label className="hf-field">
                   <span>Status</span>
                   <select name="status" value={formData.status} onChange={handleChange}>
                     <option value="Aktif">Aktif</option>
@@ -424,97 +413,44 @@ function Hampers() {
                   </select>
                 </label>
 
-                {/* RELASI PRODUK DI DALAM HAMPERS */}
-                <div style={{ gridColumn: 'span 2', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <span style={{ fontWeight: 600, fontSize: '13px' }}>Isi Produk dalam Paket</span>
-                    <button
-                      type="button"
-                      className="secondary-button"
-                      style={{ padding: '4px 10px', fontSize: '12px' }}
-                      onClick={handleAddProductRow}
-                    >
-                      + Tambah Produk
-                    </button>
-                  </div>
-
-                  {formData.selectedProducts.map((item, idx) => (
-                    <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
-                      <select
-                        style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--card-bg)', color: 'var(--text-color)' }}
-                        value={item.product_id}
-                        onChange={(e) => handleProductChange(idx, parseInt(e.target.value, 10), item.quantity)}
-                      >
-                        {availableProducts.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name} ({p.store_name || 'Toko'}) - Rp{Number(p.price).toLocaleString('id-ID')}
-                          </option>
-                        ))}
-                      </select>
-
-                      <input
-                        type="number"
-                        min="1"
-                        style={{ width: '70px', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--card-bg)', color: 'var(--text-color)' }}
-                        value={item.quantity}
-                        onChange={(e) => handleProductChange(idx, item.product_id, parseInt(e.target.value, 10) || 1)}
-                      />
-
-                      <button
-                        type="button"
-                        style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '6px' }}
-                        onClick={() => handleRemoveProductRow(idx)}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                <label className="field" style={{ gridColumn: 'span 2' }}>
-                  <span>Foto Paket Hampers</span>
+                <label className="hf-field">
+                  <span>Gambar Produk</span>
                   <input
                     type="file"
                     accept="image/*"
                     name="image"
                     onChange={handleChange}
                   />
-
                   {formData.image && (
-                    <div className="image-preview-box" style={{ marginTop: '8px' }}>
-                      <img
-                        src={formData.image}
-                        alt="Preview"
-                        className="image-preview"
-                      />
-                    </div>
+                    <img
+                      src={formData.image}
+                      alt="Preview"
+                      style={{ marginTop: '8px', width: '100%', height: '80px', objectFit: 'cover', borderRadius: '8px' }}
+                    />
                   )}
-                </label>
-
-                <label className="field" style={{ gridColumn: 'span 2' }}>
-                  <span>Deskripsi Paket</span>
-                  <textarea
-                    name="description"
-                    rows={3}
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="Isi rincian kemasan box, pita, atau kartu ucapan..."
-                  />
                 </label>
               </div>
 
-              <div className="drawer-actions">
+              {/* Actions */}
+              <div className="hf-actions">
                 <button
                   type="button"
-                  className="secondary-button"
+                  className="hf-btn-cancel"
                   onClick={() => setIsFormOpen(false)}
                   disabled={submitting}
                 >
                   Batal
                 </button>
-
-                <button type="submit" className="primary-button" disabled={submitting}>
-                  {submitting ? 'Menyimpan...' : editingId === null ? 'Simpan Hampers' : 'Update Hampers'}
+                <button
+                  type="submit"
+                  className="hf-btn-submit"
+                  disabled={submitting}
+                >
+                  {submitting
+                    ? 'Menyimpan...'
+                    : editingId === null
+                    ? 'Simpan Produk'
+                    : 'Update Produk'}
                 </button>
               </div>
             </form>
@@ -525,10 +461,9 @@ function Hampers() {
       {/* CONFIRM DELETE */}
       {deleteTargetId !== null && (
         <div className="confirm-overlay" onClick={() => setDeleteTargetId(null)}>
-          <div className="confirm-dialog" onClick={(event) => event.stopPropagation()}>
+          <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
             <h3>Hapus hampers?</h3>
             <p>Apakah Anda yakin ingin menghapus paket hampers ini?</p>
-
             <div className="confirm-actions">
               <button
                 type="button"

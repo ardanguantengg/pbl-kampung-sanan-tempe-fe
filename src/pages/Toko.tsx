@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   Search,
   Plus,
@@ -48,7 +48,9 @@ function Toko() {
   const [stores, setStores] = useState<StoreItem[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('Semua')
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [selectedStore, setSelectedStore] = useState<StoreItem | null>(null)
@@ -71,30 +73,39 @@ function Toko() {
     imageFile: null,
   })
 
-  useEffect(() => {
-    fetchStores()
-  }, [statusFilter])
-
-  const fetchStores = async () => {
+  const fetchStores = useCallback(async () => {
     try {
       setLoading(true)
+      setLoadError(null)
       const res = await api.stores.getAll({
-        search: searchQuery || undefined,
+        search: appliedSearch || undefined,
         status: statusFilter !== 'Semua' ? statusFilter : undefined,
       })
       if (res.success) {
         setStores(res.data)
+      } else {
+        setLoadError('Data toko gagal dimuat. Silakan coba lagi.')
       }
     } catch (err) {
       console.error('Failed to load stores:', err)
+      setLoadError(err instanceof Error ? err.message : 'Data toko gagal dimuat. Silakan coba lagi.')
     } finally {
       setLoading(false)
     }
-  }
+  }, [appliedSearch, statusFilter])
+
+  useEffect(() => {
+    fetchStores()
+  }, [fetchStores])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    fetchStores()
+    const nextSearch = searchQuery.trim()
+    if (nextSearch === appliedSearch) {
+      fetchStores()
+    } else {
+      setAppliedSearch(nextSearch)
+    }
   }
 
   const resetForm = () => {
@@ -224,7 +235,6 @@ function Toko() {
   }
 
   const activeCount = stores.filter((s) => s.status === 'Aktif').length
-  const closedCount = stores.filter((s) => s.status === 'Tutup Sementara' || s.status === 'Menunggu').length
 
   return (
     <div>
@@ -261,9 +271,9 @@ function Toko() {
           />
         </div>
 
-        <button type="submit" className="filter-button">
-          <SlidersHorizontal size={16} />
-          Cari Toko
+        <button type="submit" className="filter-button" disabled={loading}>
+          {loading ? <Loader2 size={16} className="animate-spin" /> : <SlidersHorizontal size={16} />}
+          {loading ? 'Mencari...' : 'Cari Toko'}
         </button>
       </form>
 
@@ -281,13 +291,6 @@ function Toko() {
           onClick={() => setStatusFilter('Aktif')}
         >
           Toko Aktif <span>{activeCount}</span>
-        </button>
-
-        <button
-          className={`tab ${statusFilter === 'Tutup Sementara' ? 'active' : ''}`}
-          onClick={() => setStatusFilter('Tutup Sementara')}
-        >
-          Tutup / Menunggu <span>{closedCount}</span>
         </button>
       </div>
 
@@ -308,6 +311,10 @@ function Toko() {
             <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
               <Loader2 className="animate-spin" size={24} style={{ display: 'inline', marginRight: 8 }} />
               Memuat data toko...
+            </div>
+          ) : loadError ? (
+            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--danger, #b42318)' }}>
+              {loadError}
             </div>
           ) : stores.length === 0 ? (
             <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
