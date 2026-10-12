@@ -1,180 +1,36 @@
-# Sanan Admin — Kampung Keripik Tempe Sanan
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Aplikasi web admin untuk mengelola data toko, produk, dan paket hampers Kampung
-Keripik Tempe Sanan. Frontend dibuat dengan React dan TypeScript, sedangkan data
-diakses melalui REST API backend.
+## Getting Started
 
-## Fitur
-
-- Login admin dan halaman admin yang dilindungi autentikasi.
-- Dashboard ringkasan toko, produk, hampers, serta aktivitas terbaru.
-- Manajemen data toko: melihat, mencari, menambah, mengubah, dan menghapus data.
-- Manajemen data produk dan paket hampers.
-- Form dengan status proses dan pesan kesalahan.
-- Navigasi antarhalaman melalui sidebar.
-
-Halaman yang saat ini terdaftar di aplikasi: `/login`, `/dashboard`, `/toko`,
-`/produk`, dan `/hampers`.
-
-## Teknologi dan library
-
-### Library utama
-
-| Library | Kegunaan |
-|---|---|
-| React | Membangun antarmuka berbasis komponen. |
-| React DOM | Merender aplikasi React ke halaman web. |
-| React Router DOM | Routing dan navigasi antarhalaman. |
-| TypeScript | Menambahkan pemeriksaan tipe pada kode. |
-| Lucide React | Ikon antarmuka. |
-| Axios | Library HTTP yang tersedia sebagai dependency proyek. |
-
-### Perangkat pengembangan
-
-| Library | Kegunaan |
-|---|---|
-| Vite | Development server dan proses build frontend. |
-| ESLint | Pemeriksaan kualitas dan konsistensi kode. |
-| TypeScript | Pemeriksaan tipe saat build. |
-
-### Backend dan database
-
-Backend menggunakan Node.js, Express, TypeScript, dan MySQL. Backend juga
-menggunakan JWT untuk autentikasi, `bcrypt` untuk hashing password,
-`express-validator` untuk validasi, serta `multer` untuk upload gambar.
-
-## Persyaratan
-
-- Node.js 20.19+ atau 22.12+.
-- npm.
-- MySQL Server yang berjalan secara lokal.
-- Backend API berjalan di `http://localhost:5000`.
-
-Frontend saat ini menggunakan alamat API tetap `http://localhost:5000/api`.
-
-## Cara menjalankan proyek
-
-Jalankan backend dan frontend di **dua terminal terpisah**.
-
-### 1. Siapkan database dan backend
-
-Dari root repository:
-
-```bash
-cd kripik-tempe-sanan-be
-npm install
-```
-
-Salin `.env.example` menjadi `.env`, kemudian sesuaikan konfigurasi database
-dengan MySQL lokal:
-
-```env
-PORT=5000
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=sanan_tempe_db
-JWT_SECRET=ganti_dengan_secret_lokal
-CLIENT_URL=http://localhost:5173
-```
-
-Jalankan migrasi dan seed data awal:
-
-```bash
-npm run db:migrate
-npm run db:seed
-```
-
-Kemudian jalankan server backend:
+First, run the development server:
 
 ```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Backend tersedia di `http://localhost:5000`.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### 2. Jalankan frontend
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-Buka terminal kedua dari root repository:
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+## Learn More
 
-Buka alamat yang ditampilkan Vite, biasanya `http://localhost:5173`. Pastikan
-backend dan MySQL tetap berjalan saat menggunakan fitur yang mengambil atau
-menyimpan data.
+To learn more about Next.js, take a look at the following resources:
 
-### Akun admin
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-Gunakan akun admin default yang disediakan oleh seeder backend:
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-- Email: `admin@sanan.com`
-- Password: `admin123`
+## Deploy on Vercel
 
-Untuk penggunaan selain pengembangan lokal, ganti kredensial default dan jangan
-menggunakan password tersebut di lingkungan produksi.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-## Perintah frontend
-
-Jalankan perintah berikut dari folder `frontend`:
-
-```bash
-npm run dev      # Menjalankan development server
-npm run build    # Memeriksa TypeScript dan membuat build produksi
-npm run lint     # Menjalankan ESLint
-npm run preview  # Menyajikan hasil build secara lokal
-```
-
-## Struktur folder frontend
-
-```text
-frontend/
-├── public/             # Aset statis
-├── src/
-│   ├── assets/         # Gambar yang digunakan aplikasi
-│   ├── components/     # Komponen bersama, seperti Header dan Sidebar
-│   ├── layouts/        # Layout halaman admin
-│   ├── pages/          # Halaman login, dashboard, toko, produk, dan hampers
-│   ├── services/       # Komunikasi dengan REST API
-│   ├── App.tsx         # Routing aplikasi
-│   ├── index.css       # Styling aplikasi
-│   └── main.tsx        # Entry point React
-└── README.md
-```
-
-## Screenshot aplikasi
-
-Simpan screenshot hasil aplikasi di folder `screenshots/` pada folder
-`frontend/`, lalu pastikan gambar tersebut ikut disertakan saat mengumpulkan
-proyek. Ambil screenshot langsung dari aplikasi yang berjalan, bukan dari desain
-mockup.
-
-Screenshot belum tersedia di repository saat README ini dibuat. Setelah gambar
-diambil, gunakan nama file berikut agar tampil di README:
-
-### Halaman login
-
-Simpan sebagai `frontend/screenshots/login.png`.
-
-![Screenshot halaman login](./screenshots/login.png)
-
-### Dashboard admin
-
-Simpan sebagai `frontend/screenshots/dashboard.png`.
-
-![Screenshot dashboard admin](./screenshots/dashboard.png)
-
-### Halaman manajemen data
-
-Simpan sebagai `frontend/screenshots/manajemen-data.png`.
-
-![Screenshot halaman manajemen data](./screenshots/manajemen-data.png)
-
-## Catatan
-
-- Pastikan file `.env` backend tidak dibagikan atau dimasukkan ke repository.
-- Endpoint API frontend saat ini dikonfigurasi di `src/services/api.ts`.
-- Jalankan build dan lint sebelum pengumpulan untuk memeriksa frontend.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

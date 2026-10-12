@@ -1,0 +1,73 @@
+'use client'
+
+import React, { createContext, useContext, useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
+
+interface SidebarContextType {
+  isMobileOpen: boolean
+  isCollapsed: boolean
+  toggleMobile: () => void
+  closeMobile: () => void
+  toggleCollapse: () => void
+}
+
+const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
+
+export function SidebarProvider({ children }: { children: React.ReactNode }) {
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const pathname = usePathname()
+
+  // Auto-close mobile drawer on route navigation
+  useEffect(() => {
+    setIsMobileOpen(false)
+  }, [pathname])
+
+  // Auto-close mobile drawer on window resize to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsMobileOpen(false)
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Close on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobileOpen) {
+        setIsMobileOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isMobileOpen])
+
+  const toggleMobile = () => setIsMobileOpen((prev) => !prev)
+  const closeMobile = () => setIsMobileOpen(false)
+  const toggleCollapse = () => setIsCollapsed((prev) => !prev)
+
+  return (
+    <SidebarContext.Provider
+      value={{
+        isMobileOpen,
+        isCollapsed,
+        toggleMobile,
+        closeMobile,
+        toggleCollapse,
+      }}
+    >
+      {children}
+    </SidebarContext.Provider>
+  )
+}
+
+export function useSidebar() {
+  const context = useContext(SidebarContext)
+  if (!context) {
+    throw new Error('useSidebar must be used within a SidebarProvider')
+  }
+  return context
+}
