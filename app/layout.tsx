@@ -4,6 +4,9 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'Sanan Admin — Kampung Keripik Tempe Digital Hub',
   description: 'Kelola informasi, toko, produk, dan data Kampung Keripik Tempe Sanan.',
+  icons: {
+    icon: '/icon.svg',
+  },
 }
 
 export default function RootLayout({
