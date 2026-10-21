@@ -1,12 +1,9 @@
 'use client'
 
-import { BookOpen, Plus, Pencil } from 'lucide-react'
-
-interface ArticleItem {
-  title: string
-  category: string
-  status: string
-}
+import KnowledgeHeader from './components/KnowledgeHeader'
+import KnowledgeCard, {
+  type ArticleItem,
+} from './components/KnowledgeCard'
 
 export default function PengetahuanPage() {
   const articles: ArticleItem[] = [
@@ -34,52 +31,14 @@ export default function PengetahuanPage() {
 
   return (
     <div>
-      <div className="page-title-row">
-        <div>
-          <h1>Pengetahuan</h1>
-          <p>
-            Kelola informasi edukatif tentang Kampung Sanan,
-            tempe, dan keripik tempe.
-          </p>
-        </div>
-
-        <button className="primary-button">
-          <Plus size={17} />
-          Tambah Informasi
-        </button>
-      </div>
+      <KnowledgeHeader />
 
       <div className="card-grid">
-        {articles.map((article, index) => (
-          <div className="content-card" key={index}>
-            <div className="content-icon">
-              <BookOpen size={20} />
-            </div>
-
-            <span
-              className={`status-badge ${
-                article.status === 'Dipublikasi'
-                  ? 'active-status'
-                  : 'waiting-status'
-              }`}
-            >
-              {article.status}
-            </span>
-
-            <small>{article.category}</small>
-
-            <h3>{article.title}</h3>
-
-            <p>
-              Informasi edukatif yang dapat ditampilkan
-              kepada pengguna aplikasi mobile.
-            </p>
-
-            <button className="outline-button">
-              <Pencil size={15} />
-              Edit Konten
-            </button>
-          </div>
+        {articles.map((article) => (
+          <KnowledgeCard
+            key={article.title}
+            article={article}
+          />
         ))}
       </div>
     </div>
