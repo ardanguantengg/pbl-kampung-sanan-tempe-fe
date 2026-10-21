@@ -14,7 +14,7 @@ import HampersDeleteModal from './components/HampersDeleteModal'
 import type {
   HamperItem,
   HamperFormData,
-} from './components/types'
+} from '@/types/hampers'
 
 const defaultForm: HamperFormData = {
   name: '',

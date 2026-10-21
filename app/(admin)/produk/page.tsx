@@ -8,7 +8,7 @@ import type {
   ProductItem,
   ProductFormData,
   StoreOption,
-} from './components/types'
+} from '@/types/produk'
 
 import ProductToolbar from './components/ProductToolbar'
 import ProductTable from './components/ProductTable'

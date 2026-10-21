@@ -12,7 +12,7 @@ import DashboardInsights from './components/DashboardInsights'
 import RecentActivities from './components/RecentActivities'
 import DashboardQuote from './components/DashboardQuote'
 
-import type { DashboardStatsData } from './components/types'
+import type { DashboardStatsData } from '@/types/dashboard'
 
 export default function DashboardPage() {
   const router = useRouter()

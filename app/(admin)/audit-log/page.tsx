@@ -8,7 +8,7 @@ import AuditLogHeader from './components/AuditLogHeader'
 import AuditLogTable from './components/AuditLogTable'
 import AuditLogPagination from './components/AuditLogPagination'
 
-import type { ActivityLogItem } from './components/types'
+import type { ActivityLogItem } from '@/types/audit-log'
 
 export default function AuditLogPage() {
   const [logs, setLogs] = useState<ActivityLogItem[]>([])

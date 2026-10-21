@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Plus } from 'lucide-react'
 import { api, getFullImageUrl } from '@/services/api'
 
-import type { StoreItem, StoreFormData } from './components/types'
+import type { StoreItem, StoreFormData } from '@/types/toko'
 import TokoSearch from './components/TokoSearch'
 import TokoStats from './components/TokoStats'
 import TokoTable from './components/TokoTable'
