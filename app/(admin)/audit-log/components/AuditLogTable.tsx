@@ -1,6 +1,6 @@
 
 import { ClipboardList, Loader2 } from 'lucide-react'
-import type { ActivityLogItem } from './types'
+import type { ActivityLogItem } from '@/types/audit-log'
 
 interface AuditLogTableProps {
   logs: ActivityLogItem[]

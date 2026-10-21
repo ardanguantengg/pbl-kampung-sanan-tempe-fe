@@ -1,6 +1,6 @@
 
 import { Gift, Pencil, Trash2 } from 'lucide-react'
-import type { HamperItem } from './types'
+import type { HamperItem } from '@/types/hampers'
 
 interface HampersCardProps {
   hamper: HamperItem

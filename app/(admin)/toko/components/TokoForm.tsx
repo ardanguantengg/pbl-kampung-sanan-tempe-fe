@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertCircle, ExternalLink, X } from 'lucide-react'
-import type { StoreFormData } from './types'
+import type { StoreFormData } from '@/types/toko'
 
 interface TokoFormProps {
   formData: StoreFormData

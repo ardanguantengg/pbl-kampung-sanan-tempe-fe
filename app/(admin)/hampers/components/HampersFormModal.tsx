@@ -1,7 +1,7 @@
 
 import { AlertCircle, X } from 'lucide-react'
 import type { ChangeEvent, FormEvent } from 'react'
-import type { HamperFormData } from './types'
+import type { HamperFormData } from '@/types/hampers'
 
 interface HampersFormModalProps {
   isOpen: boolean

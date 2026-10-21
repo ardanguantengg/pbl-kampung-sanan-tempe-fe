@@ -1,6 +1,6 @@
 
 import { ArrowUpRight, CheckCircle2 } from 'lucide-react'
-import type { DashboardActivity } from './types'
+import type { DashboardActivity } from '@/types/dashboard'
 
 interface RecentActivitiesProps {
   activities: DashboardActivity[]

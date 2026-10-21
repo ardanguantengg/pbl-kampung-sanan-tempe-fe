@@ -5,7 +5,7 @@ import {
   Gift,
   Loader2,
 } from 'lucide-react'
-import type { DashboardStatsData } from './types'
+import type { DashboardStatsData } from '@/types/dashboard'
 
 interface DashboardStatsProps {
   stats: DashboardStatsData

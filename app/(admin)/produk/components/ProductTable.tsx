@@ -2,7 +2,7 @@
 
 import { Loader2, Pencil, Trash2 } from 'lucide-react'
 import { getFullImageUrl } from '@/services/api'
-import type { ProductItem } from './types'
+import type { ProductItem } from '@/types/produk'
 
 interface ProductTableProps {
   products: ProductItem[]

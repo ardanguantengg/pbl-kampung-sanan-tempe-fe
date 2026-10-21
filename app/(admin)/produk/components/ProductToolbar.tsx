@@ -1,7 +1,7 @@
 'use client'
 
 import { Search, SlidersHorizontal } from 'lucide-react'
-import type { StoreOption } from './types'
+import type { StoreOption } from '@/types/produk'
 
 interface ProductToolbarProps {
   searchQuery: string

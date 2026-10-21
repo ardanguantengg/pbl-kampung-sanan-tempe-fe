@@ -9,7 +9,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { getFullImageUrl } from '@/services/api'
-import type { StoreItem } from './types'
+import type { StoreItem } from '@/types/toko'
 
 interface TokoDetailProps {
   store: StoreItem

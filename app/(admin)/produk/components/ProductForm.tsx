@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { AlertCircle, X } from 'lucide-react'
-import type { ProductFormData, StoreOption } from './types'
+import type { ProductFormData, StoreOption } from '@/types/produk'
 
 interface ProductFormProps {
   isOpen: boolean

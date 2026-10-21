@@ -1,7 +1,7 @@
 
 import { Gift, Loader2 } from 'lucide-react'
 import HampersCard from './HampersCard'
-import type { HamperItem } from './types'
+import type { HamperItem } from '@/types/hampers'
 
 interface HampersListProps {
   hampers: HamperItem[]
