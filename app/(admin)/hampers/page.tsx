@@ -15,7 +15,6 @@ import type {
   HamperItem,
   HamperFormData,
 } from '@/types/hampers'
-
 const defaultForm: HamperFormData = {
   name: '',
   storeId: '',
