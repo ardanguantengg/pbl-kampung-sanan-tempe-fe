@@ -15,7 +15,8 @@ import type {
   HamperFormData,
 } from '@/types/hampers'
 
-// Batas harus sama dengan di HampersFormModal.tsx
+// Batas (MAX_PRICE dan MAX_ITEMS harus sama dengan di HampersFormModal.tsx)
+const MIN_PRICE = 5000
 const MAX_PRICE = 1_000_000_000
 const MAX_ITEMS = 100
 
@@ -148,11 +149,16 @@ export default function HampersPage() {
     event.preventDefault()
     setFormError(null)
 
-    // Validasi harga (lapisan kedua, selain validasi di input)
+    // Validasi harga (minimal & maksimal)
     const priceNumber = Number(formData.price)
 
-    if (!formData.price || Number.isNaN(priceNumber) || priceNumber <= 0) {
-      setFormError('Harga harus lebih dari 0')
+    if (!formData.price || Number.isNaN(priceNumber)) {
+      setFormError('Harga wajib diisi')
+      return
+    }
+
+    if (priceNumber < MIN_PRICE) {
+      setFormError(`Harga minimal Rp ${MIN_PRICE.toLocaleString('en-US')}`)
       return
     }
 

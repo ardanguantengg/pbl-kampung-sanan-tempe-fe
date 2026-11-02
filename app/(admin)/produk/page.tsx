@@ -15,7 +15,8 @@ import ProductTable from './components/ProductTable'
 import ProductForm from './components/ProductForm'
 import DeleteConfirmation from './components/DeleteConfirmation'
 
-// Batas maksimal harga (harus sama dengan di ProductForm.tsx)
+// Batas harga (MAX harus sama dengan di ProductForm.tsx)
+const MIN_PRICE = 5000
 const MAX_PRICE = 1_000_000_000
 
 export default function ProdukPage() {
@@ -150,11 +151,16 @@ export default function ProdukPage() {
     event.preventDefault()
     setFormError(null)
 
-    // Validasi harga (lapisan kedua, selain validasi di input)
+    // Validasi harga (minimal & maksimal)
     const priceNumber = Number(formData.price)
 
-    if (!formData.price || Number.isNaN(priceNumber) || priceNumber <= 0) {
-      setFormError('Harga harus lebih dari 0')
+    if (!formData.price || Number.isNaN(priceNumber)) {
+      setFormError('Harga wajib diisi')
+      return
+    }
+
+    if (priceNumber < MIN_PRICE) {
+      setFormError(`Harga minimal Rp ${MIN_PRICE.toLocaleString('en-US')}`)
       return
     }
 
