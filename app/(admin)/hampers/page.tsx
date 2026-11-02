@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { api, getFullImageUrl } from '@/services/api'
 
@@ -15,6 +15,17 @@ import type {
   HamperItem,
   HamperFormData,
 } from '@/types/hampers'
+
+interface ProductOption {
+  id: number
+  store_id: number
+}
+
+interface StoreOption {
+  id: number
+  name: string
+}
+
 const defaultForm: HamperFormData = {
   name: '',
   storeId: '',
@@ -28,8 +39,8 @@ const defaultForm: HamperFormData = {
 
 export default function HampersPage() {
   const [hampers, setHampers] = useState<HamperItem[]>([])
-  const [availableProducts, setAvailableProducts] = useState<any[]>([])
-  const [availableStores, setAvailableStores] = useState<any[]>([])
+  const [availableProducts, setAvailableProducts] = useState<ProductOption[]>([])
+  const [availableStores, setAvailableStores] = useState<StoreOption[]>([])
 
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -40,18 +51,12 @@ export default function HampersPage() {
 
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [formData, setFormData] =
-    useState<HamperFormData>(defaultForm)
+  const [formData, setFormData] = useState<HamperFormData>(defaultForm)
 
-  useEffect(() => {
-    fetchHampers()
-    fetchProducts()
-    fetchStores()
-  }, [])
-
-  const fetchHampers = async () => {
+  const fetchHampers = useCallback(async () => {
     try {
       setLoading(true)
+
       const res = await api.hampers.getAll()
 
       if (res.success) {
@@ -62,9 +67,9 @@ export default function HampersPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const res = await api.products.getAll()
 
@@ -74,9 +79,9 @@ export default function HampersPage() {
     } catch (err) {
       console.error('Failed to load products:', err)
     }
-  }
+  }, [])
 
-  const fetchStores = async () => {
+  const fetchStores = useCallback(async () => {
     try {
       const res = await api.stores.getAll()
 
@@ -86,7 +91,13 @@ export default function HampersPage() {
     } catch (err) {
       console.error('Failed to load stores:', err)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchHampers()
+    fetchProducts()
+    fetchStores()
+  }, [fetchHampers, fetchProducts, fetchStores])
 
   const resetForm = () => {
     setFormData({ ...defaultForm })
@@ -188,9 +199,15 @@ export default function HampersPage() {
       setIsFormOpen(false)
       resetForm()
       await fetchHampers()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving hamper:', err)
-      setFormError(err.message || 'Gagal menyimpan hampers')
+
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Gagal menyimpan hampers'
+
+      setFormError(message)
     } finally {
       setSubmitting(false)
     }
