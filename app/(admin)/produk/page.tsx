@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { api, getFullImageUrl } from '@/services/api'
+import { validateImageFile } from '@/services/imageUpload'
 
 import type {
   ProductItem,
@@ -128,7 +129,16 @@ export default function ProdukPage() {
 
     if (inputElement.files && inputElement.files[0]) {
       const file = inputElement.files[0]
+      const imageError = validateImageFile(file)
+
+      if (imageError) {
+        inputElement.value = ''
+        setFormError(imageError)
+        return
+      }
+
       const fileUrl = URL.createObjectURL(file)
+      setFormError(null)
 
       setFormData((prev) => ({
         ...prev,

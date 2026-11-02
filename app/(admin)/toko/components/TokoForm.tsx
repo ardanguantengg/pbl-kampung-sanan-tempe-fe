@@ -180,7 +180,7 @@ export default function TokoForm({
               <span>Foto Toko (Upload File)</span>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,.jpg,.jpeg,.png"
                 name="image"
                 onChange={onChange}
               />

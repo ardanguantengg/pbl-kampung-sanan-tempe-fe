@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { api, getFullImageUrl } from '@/services/api'
+import { validateImageFile } from '@/services/imageUpload'
 
 import HampersHeader from './components/HampersHeader'
 import HampersSearch from './components/HampersSearch'
@@ -126,7 +127,16 @@ export default function HampersPage() {
 
     if (inputEl.files && inputEl.files[0]) {
       const file = inputEl.files[0]
+      const imageError = validateImageFile(file)
+
+      if (imageError) {
+        inputEl.value = ''
+        setFormError(imageError)
+        return
+      }
+
       const fileUrl = URL.createObjectURL(file)
+      setFormError(null)
 
       setFormData((prev) => ({
         ...prev,

@@ -224,7 +224,7 @@ export default function HampersFormModal({
               <span>Gambar Produk</span>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,.jpg,.jpeg,.png"
                 name="image"
                 onChange={onChange}
               />
