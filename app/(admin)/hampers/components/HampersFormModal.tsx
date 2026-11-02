@@ -1,7 +1,21 @@
-
+import { useState, useEffect } from 'react'
 import { AlertCircle, X } from 'lucide-react'
 import type { ChangeEvent, FormEvent } from 'react'
 import type { HamperFormData } from '@/types/hampers'
+
+// Batas maksimal harga (Rp 1 miliar), harus sama dengan di page.tsx
+const MAX_PRICE = 1_000_000_000
+
+// Batas maksimal jumlah produk dalam satu paket
+const MAX_ITEMS = 100
+
+// Tampilkan angka dengan koma tiap 3 digit: 12000 -> 12,000
+const formatPrice = (value: string | number | null | undefined) => {
+  if (value === '' || value === null || value === undefined) return ''
+  const num = Number(value)
+  if (Number.isNaN(num)) return ''
+  return Math.floor(num).toLocaleString('en-US')
+}
 
 interface HampersFormModalProps {
   isOpen: boolean
@@ -28,6 +42,59 @@ export default function HampersFormModal({
   onChange,
   onSubmit,
 }: HampersFormModalProps) {
+  const [priceError, setPriceError] = useState<string | null>(null)
+  const [itemsError, setItemsError] = useState<string | null>(null)
+
+  // Reset pesan error tiap form dibuka
+  useEffect(() => {
+    if (isOpen) {
+      setPriceError(null)
+      setItemsError(null)
+    }
+  }, [isOpen])
+
+  const handlePriceChange = (event: ChangeEvent<HTMLInputElement>) => {
+    // Buang semua selain angka (otomatis nolak minus, huruf, titik, koma)
+    // lalu hapus nol di depan (007 -> 7)
+    const digits = event.target.value
+      .replace(/\D/g, '')
+      .replace(/^0+(?=\d)/, '')
+
+    if (digits && Number(digits) > MAX_PRICE) {
+      setPriceError(`Harga maksimal Rp ${MAX_PRICE.toLocaleString('en-US')}`)
+      return
+    }
+
+    setPriceError(null)
+
+    // Kirim ke parent sebagai angka murni (tanpa koma)
+    onChange({
+      target: { name: 'price', value: digits, type: 'text', files: null },
+    } as unknown as ChangeEvent<HTMLInputElement>)
+  }
+
+  const handleItemsChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const digits = event.target.value
+      .replace(/\D/g, '')
+      .replace(/^0+(?=\d)/, '')
+
+    if (digits && Number(digits) > MAX_ITEMS) {
+      setItemsError(`Jumlah produk maksimal ${MAX_ITEMS}`)
+      return
+    }
+
+    setItemsError(null)
+
+    onChange({
+      target: {
+        name: 'jumlahProduk',
+        value: digits,
+        type: 'text',
+        files: null,
+      },
+    } as unknown as ChangeEvent<HTMLInputElement>)
+  }
+
   if (!isOpen) return null
 
   return (
@@ -93,25 +160,41 @@ export default function HampersFormModal({
               <span>Jumlah produk</span>
               <input
                 name="jumlahProduk"
-                type="number"
-                min="1"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
                 placeholder="5"
                 value={formData.jumlahProduk}
-                onChange={onChange}
+                onChange={handleItemsChange}
               />
+              {itemsError && (
+                <small
+                  style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}
+                >
+                  {itemsError}
+                </small>
+              )}
             </label>
 
             <label className="hf-field">
               <span>Harga</span>
               <input
                 name="price"
-                type="number"
-                min="0"
-                placeholder="9000"
-                value={formData.price}
-                onChange={onChange}
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="9,000"
+                value={formatPrice(formData.price)}
+                onChange={handlePriceChange}
                 required
               />
+              {priceError && (
+                <small
+                  style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}
+                >
+                  {priceError}
+                </small>
+              )}
             </label>
 
             <label className="hf-field hf-full">

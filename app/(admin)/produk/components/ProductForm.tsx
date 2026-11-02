@@ -1,8 +1,19 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { AlertCircle, X } from 'lucide-react'
 import type { ProductFormData, StoreOption } from '@/types/produk'
+
+// Batas maksimal harga (Rp 1 miliar), bebas diganti sesuai kebutuhan
+const MAX_PRICE = 1_000_000_000
+
+// Tampilkan angka dengan koma tiap 3 digit: 12000 -> 12,000
+const formatPrice = (value: string | number | null | undefined) => {
+  if (value === '' || value === null || value === undefined) return ''
+  const num = Number(value)
+  if (Number.isNaN(num)) return ''
+  return Math.floor(num).toLocaleString('en-US')
+}
 
 interface ProductFormProps {
   isOpen: boolean
@@ -31,10 +42,42 @@ export default function ProductForm({
   onChange,
   onSubmit,
 }: ProductFormProps) {
+  const [priceError, setPriceError] = useState<string | null>(null)
+
+  // Reset pesan error harga setiap form dibuka
+  useEffect(() => {
+    if (isOpen) setPriceError(null)
+  }, [isOpen])
+
+  const handlePriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Buang semua selain angka (otomatis nolak minus, huruf, titik, koma)
+    // lalu hapus nol di depan (007 -> 7)
+    const digits = event.target.value
+      .replace(/\D/g, '')
+      .replace(/^0+(?=\d)/, '')
+
+    if (digits && Number(digits) > MAX_PRICE) {
+      setPriceError(`Harga maksimal Rp ${MAX_PRICE.toLocaleString('en-US')}`)
+      return
+    }
+
+    setPriceError(null)
+
+    // Kirim ke parent sebagai angka murni (tanpa koma)
+    onChange({
+      target: { name: 'price', value: digits, type: 'text', files: null },
+    } as unknown as React.ChangeEvent<HTMLInputElement>)
+  }
+
+  const handleClose = () => {
+    setPriceError(null)
+    onClose()
+  }
+
   if (!isOpen) return null
 
   return (
-    <div className="drawer-overlay" onClick={onClose}>
+    <div className="drawer-overlay" onClick={handleClose}>
       <div
         className="drawer-panel"
         onClick={(event) => event.stopPropagation()}
@@ -50,7 +93,7 @@ export default function ProductForm({
           <button
             type="button"
             className="icon-button"
-            onClick={onClose}
+            onClick={handleClose}
           >
             <X size={16} />
           </button>
@@ -113,13 +156,21 @@ export default function ProductForm({
 
               <input
                 name="price"
-                type="number"
-                min="0"
-                value={formData.price}
-                onChange={onChange}
-                placeholder="20000"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                value={formatPrice(formData.price)}
+                onChange={handlePriceChange}
+                placeholder="20,000"
                 required
               />
+              {priceError && (
+                <small
+                  style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}
+                >
+                  {priceError}
+                </small>
+              )}
             </label>
 
             <label className="field">
@@ -199,7 +250,7 @@ export default function ProductForm({
             <button
               type="button"
               className="secondary-button"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={submitting}
             >
               Batal

@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
@@ -15,6 +14,10 @@ import type {
   HamperItem,
   HamperFormData,
 } from '@/types/hampers'
+
+// Batas harus sama dengan di HampersFormModal.tsx
+const MAX_PRICE = 1_000_000_000
+const MAX_ITEMS = 100
 
 interface ProductOption {
   id: number
@@ -144,6 +147,34 @@ export default function HampersPage() {
   ) => {
     event.preventDefault()
     setFormError(null)
+
+    // Validasi harga (lapisan kedua, selain validasi di input)
+    const priceNumber = Number(formData.price)
+
+    if (!formData.price || Number.isNaN(priceNumber) || priceNumber <= 0) {
+      setFormError('Harga harus lebih dari 0')
+      return
+    }
+
+    if (priceNumber > MAX_PRICE) {
+      setFormError(`Harga maksimal Rp ${MAX_PRICE.toLocaleString('en-US')}`)
+      return
+    }
+
+    // Validasi jumlah produk (boleh kosong, nanti dianggap 1)
+    if (formData.jumlahProduk) {
+      const itemsNumber = Number(formData.jumlahProduk)
+
+      if (
+        Number.isNaN(itemsNumber) ||
+        itemsNumber < 1 ||
+        itemsNumber > MAX_ITEMS
+      ) {
+        setFormError(`Jumlah produk harus antara 1 sampai ${MAX_ITEMS}`)
+        return
+      }
+    }
+
     setSubmitting(true)
 
     try {
@@ -232,7 +263,8 @@ export default function HampersPage() {
       jumlahProduk: String(
         hamper.items?.length || hamper.item_count || ''
       ),
-      price: String(hamper.price),
+      // Math.floor biar harga "20000.00" dari database jadi "20000"
+      price: String(Math.floor(Number(hamper.price))),
       status: hamper.status,
       image: hamper.image
         ? getFullImageUrl(hamper.image) || ''

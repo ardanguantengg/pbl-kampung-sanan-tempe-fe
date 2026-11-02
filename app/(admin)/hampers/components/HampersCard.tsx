@@ -54,7 +54,7 @@ export default function HampersCard({
         </span>
 
         <span className="hampers-price">
-          Rp{Number(hamper.price).toLocaleString('id-ID')}
+          Rp{Number(hamper.price).toLocaleString('en-US')}
         </span>
       </div>
 

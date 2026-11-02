@@ -15,6 +15,9 @@ import ProductTable from './components/ProductTable'
 import ProductForm from './components/ProductForm'
 import DeleteConfirmation from './components/DeleteConfirmation'
 
+// Batas maksimal harga (harus sama dengan di ProductForm.tsx)
+const MAX_PRICE = 1_000_000_000
+
 export default function ProdukPage() {
   const [products, setProducts] = useState<ProductItem[]>([])
   const [stores, setStores] = useState<StoreOption[]>([])
@@ -146,6 +149,20 @@ export default function ProdukPage() {
   ) => {
     event.preventDefault()
     setFormError(null)
+
+    // Validasi harga (lapisan kedua, selain validasi di input)
+    const priceNumber = Number(formData.price)
+
+    if (!formData.price || Number.isNaN(priceNumber) || priceNumber <= 0) {
+      setFormError('Harga harus lebih dari 0')
+      return
+    }
+
+    if (priceNumber > MAX_PRICE) {
+      setFormError(`Harga maksimal Rp ${MAX_PRICE.toLocaleString('en-US')}`)
+      return
+    }
+
     setSubmitting(true)
 
     try {
@@ -193,7 +210,8 @@ export default function ProdukPage() {
     setFormData({
       store_id: String(product.store_id),
       name: product.name,
-      price: String(product.price),
+      // Math.floor biar harga "20000.00" dari database jadi "20000"
+      price: String(Math.floor(Number(product.price))),
       variant: product.variant || '',
       size: product.size || '',
       description: product.description || '',

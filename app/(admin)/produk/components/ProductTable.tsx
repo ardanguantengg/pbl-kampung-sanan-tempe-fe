@@ -103,7 +103,7 @@ export default function ProductTable({
 
               <div>
                 <strong>
-                  Rp{Number(product.price).toLocaleString('id-ID')}
+                 Rp{Number(product.price).toLocaleString('en-US')}
                 </strong>
               </div>
 
