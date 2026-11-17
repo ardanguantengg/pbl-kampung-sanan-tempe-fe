@@ -21,6 +21,11 @@ export default function TokoPage() {
   const [statusFilter, setStatusFilter] = useState('Semua')
   const [loadError, setLoadError] = useState<string | null>(null)
 
+  const [currentPage, setCurrentPage] = useState(1)
+  const [perPage, setPerPage] = useState(100)
+  const [totalData, setTotalData] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [selectedStore, setSelectedStore] = useState<StoreItem | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -51,10 +56,14 @@ export default function TokoPage() {
       const res = await api.stores.getAll({
         search: appliedSearch || undefined,
         status: statusFilter !== 'Semua' ? statusFilter : undefined,
+        page: currentPage,
+        perPage: perPage,
       })
 
       if (res.success) {
         setStores(res.data)
+        setTotalData(res.pagination.totalData)
+        setTotalPages(res.pagination.totalPages)
       } else {
         setLoadError('Data toko gagal dimuat. Silakan coba lagi.')
       }
@@ -68,7 +77,7 @@ export default function TokoPage() {
     } finally {
       setLoading(false)
     }
-  }, [appliedSearch, statusFilter])
+  }, [appliedSearch, statusFilter, currentPage, perPage])
 
   useEffect(() => {
     fetchStores()
@@ -80,11 +89,27 @@ export default function TokoPage() {
 
     const nextSearch = searchQuery.trim()
 
-    if (nextSearch === appliedSearch) {
+    if (nextSearch === appliedSearch && currentPage === 1) {
       fetchStores()
-    } else {
-      setAppliedSearch(nextSearch)
+      return
     }
+
+    setCurrentPage(1)
+    setAppliedSearch(nextSearch)
+  }
+
+  const handleStatusFilter = (status: string) => {
+    setCurrentPage(1)
+    setStatusFilter(status)
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handlePerPageChange = (value: number) => {
+    setCurrentPage(1)
+    setPerPage(value)
   }
 
   // Mengembalikan form ke kondisi awal
@@ -294,8 +319,8 @@ export default function TokoPage() {
       {/* FILTER STATUS */}
       <TokoStats
         statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        totalStores={stores.length}
+        setStatusFilter={handleStatusFilter}
+        totalStores={totalData}
         activeCount={activeCount}
       />
 
@@ -307,6 +332,11 @@ export default function TokoPage() {
         onDetail={handleOpenDetail}
         onEdit={handleEdit}
         onDelete={setDeleteTargetId}
+        currentPage={currentPage}
+        perPage={perPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        onPerPageChange={handlePerPageChange}
       />
 
       {/* MODAL DETAIL */}

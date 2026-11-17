@@ -49,6 +49,10 @@ export default function HampersPage() {
 
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [perPage, setPerPage] = useState(100)
+  const [totalData, setTotalData] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -62,17 +66,28 @@ export default function HampersPage() {
     try {
       setLoading(true)
 
-      const res = await api.hampers.getAll()
+      const res = await api.hampers.getAll({
+        search: searchQuery || undefined,
+        page: currentPage,
+        perPage,
+      })
 
       if (res.success) {
         setHampers(res.data)
+        setTotalData(res.pagination?.totalData ?? res.data.length)
+        const nextTotalPages = res.pagination?.totalPages ?? 0
+        setTotalPages(nextTotalPages)
+
+        if (currentPage > Math.max(nextTotalPages, 1)) {
+          setCurrentPage(Math.max(nextTotalPages, 1))
+        }
       }
     } catch (err) {
       console.error('Failed to load hampers:', err)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [searchQuery, currentPage, perPage])
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -99,10 +114,15 @@ export default function HampersPage() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Load data when pagination filters change.
     fetchHampers()
+  }, [fetchHampers])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Load form options from the API.
     fetchProducts()
     fetchStores()
-  }, [fetchHampers, fetchProducts, fetchStores])
+  }, [fetchProducts, fetchStores])
 
   const resetForm = () => {
     setFormData({ ...defaultForm })
@@ -305,12 +325,6 @@ export default function HampersPage() {
     }
   }
 
-  const filteredHampers = hampers.filter((hamper) =>
-    hamper.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-  )
-
   return (
     <div>
       <HampersHeader
@@ -322,12 +336,24 @@ export default function HampersPage() {
 
       <HampersSearch
         searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        onSearchChange={(value) => {
+          setCurrentPage(1)
+          setSearchQuery(value)
+        }}
       />
 
       <HampersList
-        hampers={filteredHampers}
+        hampers={hampers}
         loading={loading}
+        totalData={totalData}
+        currentPage={currentPage}
+        perPage={perPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        onPerPageChange={(value) => {
+          setCurrentPage(1)
+          setPerPage(value)
+        }}
         onEdit={handleEdit}
         onDelete={setDeleteTargetId}
       />

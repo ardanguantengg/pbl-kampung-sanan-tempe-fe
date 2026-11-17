@@ -725,6 +725,18 @@ button {
   color: #aa9e96;
 }
 
+.product-store-filter {
+  height: 34px;
+  min-width: 150px;
+  padding: 0 12px;
+  border: 1px solid #eee7e2;
+  border-radius: 8px;
+  background: #fff;
+  color: #453932;
+  font-size: 10px;
+  cursor: pointer;
+}
+
 .drawer-overlay {
   position: fixed;
   inset: 0;
@@ -732,7 +744,7 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 40;
+  z-index: 70;
   padding: 20px;
   overflow-y: auto;
 }
@@ -1062,6 +1074,199 @@ button {
   background: #5a2e1b;
   color: white;
   border-color: #5a2e1b;
+}
+
+.data-pagination {
+  min-height: 64px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  border-top: 1px solid #eee8e4;
+  color: #292524;
+  font-size: 14px;
+}
+
+.data-pagination-info {
+  margin-right: auto;
+  color: #968a83;
+  font-size: 12px;
+}
+
+.data-pagination-size {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  min-width: 132px;
+  padding: 0 10px;
+  border: 1px solid #dedede;
+  border-radius: 8px;
+  background: #fff;
+  color: #292524;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.data-pagination-size select {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  appearance: none;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.data-pagination-size:focus-within {
+  border-color: #8a573c;
+  box-shadow: 0 0 0 3px rgba(90, 46, 27, 0.1);
+}
+
+.data-pagination-size svg {
+  margin-left: auto;
+  color: #b6b6b6;
+  pointer-events: none;
+}
+
+.data-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.data-pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.data-pagination-goto {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.data-pagination-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 38px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #292524;
+  font: inherit;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.data-pagination-controls .data-pagination-arrow {
+  color: #292524;
+}
+
+.data-pagination-controls .data-pagination-arrow:hover:not(:disabled),
+.data-pagination-controls .data-pagination-page:hover:not(.is-current) {
+  background: #f5eee9;
+  color: #5a2e1b;
+}
+
+.data-pagination-controls .data-pagination-page.is-current {
+  border: 1px solid #5a2e1b;
+  background: #5a2e1b;
+  color: #fff;
+  font-weight: 600;
+}
+
+.data-pagination-controls button:disabled {
+  color: #b6b6b6;
+  cursor: not-allowed;
+}
+
+.data-pagination-goto input {
+  width: 62px;
+  height: 38px;
+  padding: 0 8px;
+  border: 1px solid #d6d6d6;
+  border-radius: 8px;
+  background: #fff;
+  color: #292524;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.data-pagination-goto input:focus {
+  border-color: #8a573c;
+  box-shadow: 0 0 0 3px rgba(90, 46, 27, 0.1);
+}
+
+.data-pagination-goto input:disabled {
+  background: #f7f7f7;
+  cursor: not-allowed;
+}
+
+.data-pagination-goto input::-webkit-inner-spin-button,
+.data-pagination-goto input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.data-pagination-goto input[type='number'] {
+  appearance: textfield;
+}
+
+.data-pagination-controls button:focus-visible,
+.data-pagination-size select:focus-visible,
+.data-pagination-goto input:focus-visible {
+  outline: 3px solid rgba(90, 46, 27, 0.16);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .data-pagination {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px 14px;
+    padding: 12px;
+  }
+
+  .data-pagination-pages {
+    gap: 4px;
+  }
+
+  .data-pagination-controls {
+    gap: 3px;
+  }
+}
+
+@media (max-width: 380px) {
+  .data-pagination {
+    justify-content: flex-end;
+  }
+
+  .data-pagination-controls {
+    gap: 1px;
+  }
+
+  .data-pagination-pages {
+    gap: 2px;
+  }
+
+  .data-pagination-controls button {
+    width: 27px;
+  }
 }
 
 /* PRODUCT TABLE */

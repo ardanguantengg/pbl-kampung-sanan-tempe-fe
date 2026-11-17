@@ -2,20 +2,33 @@
 
 import { Loader2, Pencil, Trash2 } from 'lucide-react'
 import { getFullImageUrl } from '@/services/api'
+import TablePagination from '@/components/TablePagination'
 import type { ProductItem } from '@/types/produk'
 
 interface ProductTableProps {
   products: ProductItem[]
   loading: boolean
+  totalData: number
+  currentPage: number
+  perPage: number
+  totalPages: number
   onEdit: (product: ProductItem) => void
   onDelete: (id: number) => void
+  onPageChange: (page: number) => void
+  onPerPageChange: (perPage: number) => void
 }
 
 export default function ProductTable({
   products,
   loading,
+  totalData,
+  currentPage,
+  perPage,
+  totalPages,
   onEdit,
   onDelete,
+  onPageChange,
+  onPerPageChange,
 }: ProductTableProps) {
   return (
     <div className="data-panel">
@@ -141,11 +154,14 @@ export default function ProductTable({
         )}
       </div>
 
-      <div className="pagination">
-        <span>
-          Menampilkan {products.length} dari {products.length} Produk
-        </span>
-      </div>
+      <TablePagination
+        info={`Menampilkan ${products.length} dari ${totalData} Produk`}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        perPage={perPage}
+        onPageChange={onPageChange}
+        onPerPageChange={onPerPageChange}
+      />
     </div>
   )
 }

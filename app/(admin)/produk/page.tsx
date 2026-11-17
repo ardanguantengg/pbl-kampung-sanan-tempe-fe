@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Plus } from 'lucide-react'
 import { api, getFullImageUrl } from '@/services/api'
 import { validateImageFile } from '@/services/imageUpload'
@@ -26,8 +26,13 @@ export default function ProdukPage() {
   const [loading, setLoading] = useState(false)
 
   const [searchQuery, setSearchQuery] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
   const [selectedStoreFilter, setSelectedStoreFilter] =
     useState<string>('Semua')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [perPage, setPerPage] = useState(100)
+  const [totalData, setTotalData] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -48,14 +53,6 @@ export default function ProdukPage() {
     imageFile: null,
   })
 
-  useEffect(() => {
-    fetchStores()
-  }, [])
-
-  useEffect(() => {
-    fetchProducts()
-  }, [selectedStoreFilter])
-
   const fetchStores = async () => {
     try {
       const res = await api.stores.getAll()
@@ -75,31 +72,58 @@ export default function ProdukPage() {
     }
   }
 
-  const fetchProducts = async () => {
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Load data when pagination filters change.
+    fetchStores()
+  }, [])
+
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true)
 
       const res = await api.products.getAll({
-        search: searchQuery || undefined,
+        search: appliedSearch || undefined,
         store_id:
           selectedStoreFilter !== 'Semua'
             ? parseInt(selectedStoreFilter, 10)
             : undefined,
+        page: currentPage,
+        perPage,
       })
 
       if (res.success) {
         setProducts(res.data)
+        setTotalData(res.pagination?.totalData ?? res.data.length)
+        const nextTotalPages = res.pagination?.totalPages ?? 0
+        setTotalPages(nextTotalPages)
+
+        if (currentPage > Math.max(nextTotalPages, 1)) {
+          setCurrentPage(Math.max(nextTotalPages, 1))
+        }
       }
     } catch (err) {
       console.error('Failed to load products:', err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [appliedSearch, selectedStoreFilter, currentPage, perPage])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Load data when pagination filters change.
+    fetchProducts()
+  }, [fetchProducts])
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    fetchProducts()
+    const nextSearch = searchQuery.trim()
+
+    if (nextSearch === appliedSearch && currentPage === 1) {
+      fetchProducts()
+      return
+    }
+
+    setCurrentPage(1)
+    setAppliedSearch(nextSearch)
   }
 
   const resetForm = () => {
@@ -283,7 +307,10 @@ export default function ProdukPage() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         selectedStoreFilter={selectedStoreFilter}
-        setSelectedStoreFilter={setSelectedStoreFilter}
+        setSelectedStoreFilter={(value) => {
+          setCurrentPage(1)
+          setSelectedStoreFilter(value)
+        }}
         stores={stores}
         onSearch={handleSearch}
       />
@@ -291,6 +318,15 @@ export default function ProdukPage() {
       <ProductTable
         products={products}
         loading={loading}
+        totalData={totalData}
+        currentPage={currentPage}
+        perPage={perPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        onPerPageChange={(value) => {
+          setCurrentPage(1)
+          setPerPage(value)
+        }}
         onEdit={handleEdit}
         onDelete={setDeleteTargetId}
       />

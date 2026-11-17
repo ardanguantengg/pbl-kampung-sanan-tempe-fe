@@ -41,15 +41,7 @@ export default function ProductToolbar({
         }}
       >
         <select
-          style={{
-            padding: '8px 14px',
-            borderRadius: '8px',
-            border: '1px solid var(--border-color)',
-            background: 'var(--card-bg)',
-            color: 'var(--text-color)',
-            fontSize: '13px',
-            cursor: 'pointer',
-          }}
+          className="product-store-filter"
           value={selectedStoreFilter}
           onChange={(event) =>
             setSelectedStoreFilter(event.target.value)

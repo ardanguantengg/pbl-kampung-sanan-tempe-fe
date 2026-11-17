@@ -9,6 +9,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { getFullImageUrl } from '@/services/api'
+import TablePagination from '@/components/TablePagination'
 import type { StoreItem } from '@/types/toko'
 
 interface TokoTableProps {
@@ -18,6 +19,11 @@ interface TokoTableProps {
   onDetail: (store: StoreItem) => void
   onEdit: (store: StoreItem) => void
   onDelete: (id: number) => void
+  currentPage: number
+  perPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
+  onPerPageChange: (perPage: number) => void
 }
 
 export default function TokoTable({
@@ -27,6 +33,11 @@ export default function TokoTable({
   onDetail,
   onEdit,
   onDelete,
+  currentPage,
+  perPage,
+  totalPages,
+  onPageChange,
+  onPerPageChange,
 }: TokoTableProps) {
   return (
     <div className="data-panel">
@@ -184,11 +195,13 @@ export default function TokoTable({
         )}
       </div>
 
-      <div className="pagination">
-        <span>
-          Menampilkan {stores.length} dari {stores.length} Toko
-        </span>
-      </div>
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        perPage={perPage}
+        onPageChange={onPageChange}
+        onPerPageChange={onPerPageChange}
+      />
     </div>
   )
 }

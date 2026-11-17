@@ -106,11 +106,32 @@ export const api = {
   },
 
   stores: {
-    getAll: (params?: { search?: string; status?: string }) => {
+    getAll: (params?: {
+      search?: string;
+      status?: string;
+      page?: number;
+      perPage?: number;
+    }) => {
       const query = new URLSearchParams();
+
       if (params?.search) query.append('search', params.search);
-      if (params?.status && params.status !== 'Semua') query.append('status', params.status);
-      return request<{ success: boolean; data: any[] }>(`/stores?${query.toString()}`);
+      if (params?.status && params.status !== 'Semua') {
+        query.append('status', params.status);
+      }
+
+      query.append('page', String(params?.page ?? 1));
+      query.append('perPage', String(params?.perPage ?? 10));
+
+      return request<{
+        success: boolean;
+        data: any[];
+        pagination: {
+          currentPage: number;
+          perPage: number;
+          totalData: number;
+          totalPages: number;
+        };
+      }>(`/stores?${query.toString()}`);
     },
     getById: (id: number | string) => request<{ success: boolean; data: any }>(`/stores/${id}`),
     create: (data: FormData | any) =>
@@ -130,12 +151,29 @@ export const api = {
   },
 
   products: {
-    getAll: (params?: { search?: string; store_id?: number; status?: string }) => {
+    getAll: (params?: {
+      search?: string;
+      store_id?: number;
+      status?: string;
+      page?: number;
+      perPage?: number;
+    }) => {
       const query = new URLSearchParams();
       if (params?.search) query.append('search', params.search);
       if (params?.store_id) query.append('store_id', String(params.store_id));
       if (params?.status && params.status !== 'Semua') query.append('status', params.status);
-      return request<{ success: boolean; data: any[] }>(`/products?${query.toString()}`);
+      if (params?.page !== undefined) query.append('page', String(params.page));
+      if (params?.perPage !== undefined) query.append('perPage', String(params.perPage));
+      return request<{
+        success: boolean;
+        data: any[];
+        pagination?: {
+          currentPage: number;
+          perPage: number;
+          totalData: number;
+          totalPages: number;
+        };
+      }>(`/products?${query.toString()}`);
     },
     getById: (id: number | string) => request<{ success: boolean; data: any }>(`/products/${id}`),
     getByStore: (storeId: number | string) =>
@@ -157,11 +195,27 @@ export const api = {
   },
 
   hampers: {
-    getAll: (params?: { search?: string; status?: string }) => {
+    getAll: (params?: {
+      search?: string;
+      status?: string;
+      page?: number;
+      perPage?: number;
+    }) => {
       const query = new URLSearchParams();
       if (params?.search) query.append('search', params.search);
       if (params?.status && params.status !== 'Semua') query.append('status', params.status);
-      return request<{ success: boolean; data: any[] }>(`/hampers?${query.toString()}`);
+      if (params?.page !== undefined) query.append('page', String(params.page));
+      if (params?.perPage !== undefined) query.append('perPage', String(params.perPage));
+      return request<{
+        success: boolean;
+        data: any[];
+        pagination?: {
+          currentPage: number;
+          perPage: number;
+          totalData: number;
+          totalPages: number;
+        };
+      }>(`/hampers?${query.toString()}`);
     },
     getById: (id: number | string) => request<{ success: boolean; data: any }>(`/hampers/${id}`),
     create: (data: FormData | any) =>
