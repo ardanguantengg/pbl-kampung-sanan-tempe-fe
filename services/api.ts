@@ -198,12 +198,14 @@ export const api = {
     getAll: (params?: {
       search?: string;
       status?: string;
+      store_id?: number;
       page?: number;
       perPage?: number;
     }) => {
       const query = new URLSearchParams();
       if (params?.search) query.append('search', params.search);
       if (params?.status && params.status !== 'Semua') query.append('status', params.status);
+      if (params?.store_id !== undefined) query.append('store_id', String(params.store_id));
       if (params?.page !== undefined) query.append('page', String(params.page));
       if (params?.perPage !== undefined) query.append('perPage', String(params.perPage));
       return request<{

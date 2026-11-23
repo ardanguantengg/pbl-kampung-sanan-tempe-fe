@@ -1,5 +1,6 @@
 
 import { Gift, Pencil, Trash2 } from 'lucide-react'
+import { getFullImageUrl } from '@/services/api'
 import type { HamperItem } from '@/types/hampers'
 
 interface HampersCardProps {
@@ -30,15 +31,28 @@ export default function HampersCard({
 
   return (
     <div className="hampers-card">
-      <div className="hampers-card-top">
-        <div className="hampers-card-icon">
-          <Gift size={20} />
+      {hamper.image ? (
+        <div className="hampers-card-media">
+          <img
+            src={getFullImageUrl(hamper.image) || ''}
+            alt={hamper.name}
+            className="hampers-card-image"
+          />
+          <span className={`hampers-badge ${badgeClass}`}>
+            {hamper.status}
+          </span>
         </div>
+      ) : (
+        <div className="hampers-card-top">
+          <div className="hampers-card-icon">
+            <Gift size={20} />
+          </div>
 
-        <span className={`hampers-badge ${badgeClass}`}>
-          {hamper.status}
-        </span>
-      </div>
+          <span className={`hampers-badge ${badgeClass}`}>
+            {hamper.status}
+          </span>
+        </div>
+      )}
 
       <div className="hampers-card-body">
         <h3 className="hampers-card-name">{hamper.name}</h3>

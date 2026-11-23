@@ -17,11 +17,17 @@ const formatPrice = (value: string | number | null | undefined) => {
   return Math.floor(num).toLocaleString('en-US')
 }
 
+interface StoreOption {
+  id: number
+  name: string
+}
+
 interface HampersFormModalProps {
   isOpen: boolean
   editingId: number | null
   formData: HamperFormData
-  availableStores: any[]
+  availableStores: StoreOption[]
+  onStoreChange: (storeId: string) => void
   formError: string | null
   submitting: boolean
   onClose: () => void
@@ -36,6 +42,7 @@ export default function HampersFormModal({
   editingId,
   formData,
   availableStores,
+  onStoreChange,
   formError,
   submitting,
   onClose,
@@ -44,14 +51,22 @@ export default function HampersFormModal({
 }: HampersFormModalProps) {
   const [priceError, setPriceError] = useState<string | null>(null)
   const [itemsError, setItemsError] = useState<string | null>(null)
+  const [storeSearch, setStoreSearch] = useState('')
+
+  const selectedStore = availableStores.find(
+    (store) => String(store.id) === formData.storeId
+  )
 
   // Reset pesan error tiap form dibuka
+  /* eslint-disable react-hooks/set-state-in-effect -- Reset form-only state when the modal opens. */
   useEffect(() => {
     if (isOpen) {
       setPriceError(null)
       setItemsError(null)
+      setStoreSearch('')
     }
   }, [isOpen])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handlePriceChange = (event: ChangeEvent<HTMLInputElement>) => {
     // Buang semua selain angka (otomatis nolak minus, huruf, titik, koma)
@@ -142,18 +157,29 @@ export default function HampersFormModal({
 
             <label className="hf-field">
               <span>Toko</span>
-              <select
-                name="storeId"
-                value={formData.storeId}
-                onChange={onChange}
-              >
-                <option value="">-- Pilih Toko --</option>
+              <input
+                type="text"
+                list="hampers-store-options"
+                autoComplete="off"
+                placeholder="Cari toko..."
+                value={storeSearch || selectedStore?.name || ''}
+                onChange={(event) => {
+                  const value = event.target.value
+                  const matchingStore = availableStores.find(
+                    (store) =>
+                      store.name.toLocaleLowerCase() ===
+                      value.trim().toLocaleLowerCase()
+                  )
+
+                  setStoreSearch(value)
+                  onStoreChange(matchingStore ? String(matchingStore.id) : '')
+                }}
+              />
+              <datalist id="hampers-store-options">
                 {availableStores.map((store) => (
-                  <option key={store.id} value={store.id}>
-                    {store.name}
-                  </option>
+                  <option key={store.id} value={store.name} />
                 ))}
-              </select>
+              </datalist>
             </label>
 
             <label className="hf-field">

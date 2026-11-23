@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, SlidersHorizontal, Loader2 } from 'lucide-react'
+import { Search, Loader2 } from 'lucide-react'
 
 interface TokoSearchProps {
   searchQuery: string
@@ -31,9 +31,9 @@ export default function TokoSearch({
         {loading ? (
           <Loader2 size={16} className="animate-spin" />
         ) : (
-          <SlidersHorizontal size={16} />
+          <Search size={16} />
         )}
-        {loading ? 'Mencari...' : 'Cari Toko'}
+        {loading ? 'Mencari...' : 'Cari'}
       </button>
     </form>
   )

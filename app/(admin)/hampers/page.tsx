@@ -49,6 +49,7 @@ export default function HampersPage() {
 
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [storeFilter, setStoreFilter] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(100)
   const [totalData, setTotalData] = useState(0)
@@ -68,6 +69,7 @@ export default function HampersPage() {
 
       const res = await api.hampers.getAll({
         search: searchQuery || undefined,
+        store_id: storeFilter ? Number(storeFilter) : undefined,
         page: currentPage,
         perPage,
       })
@@ -87,7 +89,7 @@ export default function HampersPage() {
     } finally {
       setLoading(false)
     }
-  }, [searchQuery, currentPage, perPage])
+  }, [searchQuery, storeFilter, currentPage, perPage])
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -103,11 +105,29 @@ export default function HampersPage() {
 
   const fetchStores = useCallback(async () => {
     try {
-      const res = await api.stores.getAll()
+      const perPage = 100
+      const firstPage = await api.stores.getAll({ page: 1, perPage })
 
-      if (res.success) {
-        setAvailableStores(res.data)
+      if (!firstPage.success) {
+        throw new Error('Gagal mengambil daftar toko')
       }
+
+      const remainingPages = await Promise.all(
+        Array.from(
+          { length: firstPage.pagination.totalPages - 1 },
+          (_, index) =>
+            api.stores.getAll({ page: index + 2, perPage })
+        )
+      )
+
+      if (remainingPages.some((page) => !page.success)) {
+        throw new Error('Gagal mengambil daftar toko')
+      }
+
+      setAvailableStores([
+        ...firstPage.data,
+        ...remainingPages.flatMap((page) => page.data),
+      ])
     } catch (err) {
       console.error('Failed to load stores:', err)
     }
@@ -336,9 +356,15 @@ export default function HampersPage() {
 
       <HampersSearch
         searchQuery={searchQuery}
+        selectedStoreFilter={storeFilter}
+        stores={availableStores}
         onSearchChange={(value) => {
           setCurrentPage(1)
           setSearchQuery(value)
+        }}
+        onStoreFilterChange={(value) => {
+          setCurrentPage(1)
+          setStoreFilter(value)
         }}
       />
 
@@ -363,6 +389,9 @@ export default function HampersPage() {
         editingId={editingId}
         formData={formData}
         availableStores={availableStores}
+        onStoreChange={(storeId) => {
+          setFormData((prev) => ({ ...prev, storeId }))
+        }}
         formError={formError}
         submitting={submitting}
         onClose={closeForm}

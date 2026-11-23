@@ -1,19 +1,12 @@
 'use client'
 
-import { LogOut, Store, Menu } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { api, getStoredUser } from '@/services/api'
+import { Store, Menu } from 'lucide-react'
+import { getStoredUser } from '@/services/api'
 import { useSidebar } from './SidebarContext'
 
 function Header() {
-  const router = useRouter()
   const user = getStoredUser()
   const { toggleMobile } = useSidebar()
-
-  const handleLogout = () => {
-    api.auth.logout()
-    router.push('/login')
-  }
 
   return (
     <header className="top-header">
@@ -45,16 +38,6 @@ function Header() {
             <span className="admin-email">{user?.email || 'admin@sanan.com'}</span>
           </div>
         </div>
-
-        <button
-          type="button"
-          className="logout-button"
-          title="Keluar dari Akun"
-          onClick={handleLogout}
-        >
-          <LogOut size={14} />
-          <span className="logout-text">Keluar</span>
-        </button>
       </div>
     </header>
   )

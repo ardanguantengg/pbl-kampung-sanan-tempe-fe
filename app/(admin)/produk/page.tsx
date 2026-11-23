@@ -55,17 +55,37 @@ export default function ProdukPage() {
 
   const fetchStores = async () => {
     try {
-      const res = await api.stores.getAll()
+      const perPage = 100
+      const firstPage = await api.stores.getAll({ page: 1, perPage })
 
-      if (res.success) {
-        setStores(res.data)
+      if (!firstPage.success) {
+        throw new Error('Gagal mengambil daftar toko')
+      }
 
-        if (res.data.length > 0) {
-          setFormData((prev) => ({
-            ...prev,
-            store_id: prev.store_id || String(res.data[0].id),
-          }))
-        }
+      const remainingPages = await Promise.all(
+        Array.from(
+          { length: firstPage.pagination.totalPages - 1 },
+          (_, index) =>
+            api.stores.getAll({ page: index + 2, perPage })
+        )
+      )
+
+      if (remainingPages.some((page) => !page.success)) {
+        throw new Error('Gagal mengambil daftar toko')
+      }
+
+      const allStores = [
+        ...firstPage.data,
+        ...remainingPages.flatMap((page) => page.data),
+      ]
+
+      setStores(allStores)
+
+      if (allStores.length > 0) {
+        setFormData((prev) => ({
+          ...prev,
+          store_id: prev.store_id || String(allStores[0].id),
+        }))
       }
     } catch (err) {
       console.error('Failed to load stores:', err)

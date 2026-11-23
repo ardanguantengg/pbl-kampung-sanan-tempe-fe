@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Search } from 'lucide-react'
 import type { StoreOption } from '@/types/produk'
 
 interface ProductToolbarProps {
@@ -57,8 +57,8 @@ export default function ProductToolbar({
         </select>
 
         <button type="submit" className="filter-button">
-          <SlidersHorizontal size={16} />
-          Filter
+          <Search size={16} />
+          Cari
         </button>
       </div>
     </form>

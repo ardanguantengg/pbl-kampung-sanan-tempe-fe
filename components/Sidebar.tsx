@@ -1,17 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   Store,
   Package,
   Gift,
+  LogOut,
   X,
-  ChevronLeft,
-  ChevronRight,
   LucideIcon,
 } from 'lucide-react'
+import { api } from '@/services/api'
 import { useSidebar } from './SidebarContext'
 
 interface MenuItem {
@@ -22,6 +22,7 @@ interface MenuItem {
 
 function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { isMobileOpen, isCollapsed, closeMobile, toggleCollapse } = useSidebar()
 
   const mainMenu: MenuItem[] = [
@@ -47,6 +48,20 @@ function Sidebar() {
     },
   ]
 
+  const handleBrandClick = () => {
+    if (window.innerWidth <= 1024) {
+      closeMobile()
+      return
+    }
+
+    toggleCollapse()
+  }
+
+  const handleLogout = () => {
+    api.auth.logout()
+    router.push('/login')
+  }
+
   return (
     <>
       {/* Backdrop for mobile drawer */}
@@ -62,9 +77,19 @@ function Sidebar() {
         }`}
       >
         <div className="sidebar-brand">
-          <div className="brand-logo-badge">
+          <button
+            type="button"
+            className="brand-logo-badge"
+            onClick={handleBrandClick}
+            title={
+              isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'
+            }
+            aria-label={
+              isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'
+            }
+          >
             <Store size={16} strokeWidth={2.2} />
-          </div>
+          </button>
           <div className="brand-name">
             <span>Sanan Admin</span>
             <small>Digital Hub</small>
@@ -108,24 +133,16 @@ function Sidebar() {
           </nav>
         </div>
 
-        {/* Desktop Collapse / Expand Toggle Button at bottom */}
         <div className="sidebar-footer">
           <button
-            id="desktop-sidebar-collapse"
+            id="sidebar-logout"
             type="button"
-            className="sidebar-collapse-btn"
-            onClick={toggleCollapse}
-            title={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
-            aria-label={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
+            className="sidebar-logout-button"
+            onClick={handleLogout}
+            title="Keluar dari Akun"
           >
-            {isCollapsed ? (
-              <ChevronRight size={16} />
-            ) : (
-              <>
-                <ChevronLeft size={16} />
-                <span className="collapse-label">Ciutkan Sidebar</span>
-              </>
-            )}
+            <LogOut size={15} />
+            <span className="sidebar-logout-label">Keluar</span>
           </button>
         </div>
       </aside>
