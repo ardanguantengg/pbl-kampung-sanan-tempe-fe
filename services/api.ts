@@ -1,5 +1,5 @@
-export const API_BASE_URL = 'http://localhost:5000/api';
-export const SERVER_URL = 'http://localhost:5000';
+export const SERVER_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pbl-kampung-sanan-tempe-be-production.up.railway.app';
+export const API_BASE_URL = `${SERVER_URL}/api`;
 
 export function getFullImageUrl(imagePath?: string): string | undefined {
   if (!imagePath) return undefined;
